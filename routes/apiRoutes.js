@@ -1,31 +1,42 @@
 import express from 'express';
 import upload from '../middlewares/upload.js';
-import { uploadProducts,uploadCostumers,uploadSupplier,UploadTransactions,uploadtransaction_details } from '../controllers/insertTables.js';
-import {uploadAll} from '../controllers/insertMassiveController.js';
+import {uploadAllData} from '../controllers/insertMassiveController.js';
+import { getSuppliers,getSuppliersID,updateSuppliersID,createSuppliers,deleteSuppliers } from '../controllers/crudSuppliers.js';
+import {getSuppliersAnalysis,getCustomerHistory,getTopProductsByCategory} from '../controllers/reportController.js'
 
-import {
-    getDoctors,
-    getDoctorById,
-    updateDoctor
-} from '../controllers/doctorController.js';
-import { uploadAllMongoDb,getPatientHistory } from '../controllers/insertMassiveMongo.js';
-import { getRevenueReport } from '../controllers/reportController.js';
 
 const router = express.Router();
 
 
-//insert Tables Routes
-router.post('/upload/products', upload.single('archivo'), uploadProducts);
-router.post('/upload/transactions', upload.single('archivo'), UploadTransactions);
-router.post('/upload/customers', upload.single('archivo'), uploadCostumers);
-router.post('/upload/Supplier', upload.single('archivo'), uploadSupplier);
-router.post('/upload/detail', upload.single('archivo'), uploadtransaction_details);
+//INSERT MASIVE http://localhost:3000/uploadAllData
+router.post('/uploadAllData', upload.single('archivo'), uploadAllData);
+
+//GET SUPLIERS http://localhost:3000/api/suppliers BY ID http://localhost:3000/api/suppliers/1
+router.get('/api/suppliers', getSuppliers);
+router.get('/api/suppliers/:id', getSuppliersID);
+
+//UPDATE SUPPLIER ROUTE http://localhost:3000/api/suppliers/1 
+router.put('/api/suppliers/:id', updateSuppliersID);
+
+//CREATE SUPPLIER http://localhost:3000/api/suppliers
+router.post('/api/suppliers', createSuppliers);
+
+//DELETE SUPPLIER http://localhost:3000/api/suppliers/id
+router.delete('/api/suppliers/:id', deleteSuppliers);
+
+//GET SUPPPLIERS ANALYSIS http://localhost:3000/api/supplierAnalysis
+router.get('/api/supplierAnalysis',getSuppliersAnalysis)
+
+//GET CUSTOMER HISTORY http://localhost:3000/api/customerHistory/1
+router.get('/api/customerHistory/:id',getCustomerHistory)
+
+//GET TOP PRODUCTS http://localhost:3000/api/topProducts/Home
+router.get('/api/topProducts/:category',getTopProductsByCategory)
 
 
 
 
 
-router.post('/upload/all', upload.single('archivo'), uploadAll);
 
 
 

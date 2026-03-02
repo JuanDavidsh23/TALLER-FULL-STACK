@@ -1,5 +1,3 @@
-SQL TABLES
-
 CREATE TABLE customers (
     id_customer INT AUTO_INCREMENT PRIMARY KEY,
     customer_name VARCHAR(50) NOT NULL,
@@ -26,7 +24,7 @@ CREATE TABLE products (
 );
 
 CREATE TABLE transactions (
-    id_transaction INT AUTO_INCREMENT PRIMARY KEY,
+    id_transaction VARCHAR(50) NOT NULL PRIMARY KEY,
     id_customer INT NOT NULL,
     transaction_date DATE NOT NULL,
     FOREIGN KEY (id_customer) REFERENCES customers(id_customer)
@@ -34,7 +32,7 @@ CREATE TABLE transactions (
 
 CREATE TABLE transaction_details (
     id_detail INT AUTO_INCREMENT PRIMARY KEY,
-    id_transaction INT NOT NULL,
+    id_transaction VARCHAR(50) NOT NULL,
     id_product INT NOT NULL,
     quantity INT NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
@@ -42,3 +40,4 @@ CREATE TABLE transaction_details (
     FOREIGN KEY (id_transaction) REFERENCES transactions(id_transaction),
     FOREIGN KEY (id_product) REFERENCES products(id_product)
 );
+

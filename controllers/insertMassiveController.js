@@ -2,157 +2,73 @@ import fs from 'fs';
 import csv from 'csv-parser';
 import pool from '../bd.js';
 
-
-// ===============================
-// 🔵 UPLOAD ALL
-// ===============================
-
-export const uploadAll = async (req, res) => {
-
+//FUNCTION TO UPLOAD ALLT THE INFORMATION TO MYSQL megastoreglobal
+export const uploadAllData = async (req, res) => {
     if (!req.file) {
-        return res.status(400).json({
-            error: 'No se recibió el archivo'
-        });
+        return res.status(400).json({ error: 'No se recibió archivo CSV' });
     }
 
-    const resultados = [];
+    const results = [];
 
     fs.createReadStream(req.file.path)
         .pipe(csv())
-        .on('data', (data) => resultados.push(data))
+        .on('data', (data) => results.push(data))
         .on('end', async () => {
-
             const connection = await pool.getConnection();
-
+            
             try {
-
                 await connection.beginTransaction();
 
-
-
-                const pacientesMap = new Map();
-                const pacientesUnicos = [];
-
-                resultados.forEach(r => {
-                    if (!pacientesMap.has(r.customer_email)) {
-                        pacientesMap.set(r.customer_email, true);
-                        pacientesUnicos.push([
-                            r.customer_name,
-                            r.customer_email,
-                            r.customer_address,
-                            r.patient_phone
-                        ]);
-                    }
-                });
-
-                if (pacientesUnicos.length > 0) {
+                for (const row of results) {
                     await connection.query(
-                        `INSERT IGNORE INTO patients (name, email, phone, address) VALUES ?`,
-                        [pacientesUnicos]
+                        `INSERT IGNORE INTO suppliers (supplier_name, supplier_email) VALUES (?, ?)`,
+                        [row.supplier_name, row.supplier_email]
                     );
-                }
-
-
-
-                const doctoresMap = new Map();
-                const doctoresUnicos = [];
-
-                resultados.forEach(r => {
-                    if (!doctoresMap.has(r.doctor_email)) {
-                        doctoresMap.set(r.doctor_email, true);
-                        doctoresUnicos.push([
-                            r.doctor_name,
-                            r.doctor_email,
-                            r.specialty
-                        ]);
-                    }
-                });
-
-                if (doctoresUnicos.length > 0) {
-                    await connection.query(
-                        `INSERT IGNORE INTO doctors (name, email, specialty) VALUES ?`,
-                        [doctoresUnicos]
+                    const [[supplier]] = await connection.query(
+                        `SELECT id_supplier FROM suppliers WHERE supplier_email = ?`, 
+                        [row.supplier_email]
                     );
-                }
 
-                // ===============================
-                // 3️⃣ ASEGURADORAS
-                // ===============================
-
-                const segurosMap = new Map();
-                const segurosUnicos = [];
-
-                resultados.forEach(r => {
-                    if (r.insurance_provider && !segurosMap.has(r.insurance_provider)) {
-                        segurosMap.set(r.insurance_provider, true);
-                        segurosUnicos.push([
-                            r.insurance_provider,
-                            r.coverage_percentage
-                        ]);
-                    }
-                });
-
-                if (segurosUnicos.length > 0) {
                     await connection.query(
-                        `INSERT IGNORE INTO insurances (name, coverage_percentage) VALUES ?`,
-                        [segurosUnicos]
+                        `INSERT IGNORE INTO customers (customer_name, customer_email, customer_address, customer_phone) VALUES (?, ?, ?, ?)`,
+                        [row.customer_name, row.customer_email, row.customer_address, row.customer_phone]
                     );
-                }
+                    const [[customer]] = await connection.query(
+                        `SELECT id_customer FROM customers WHERE customer_email = ?`, 
+                        [row.customer_email]
+                    );
 
-                // ===============================
-                // 4️⃣ OBTENER IDS
-                // ===============================
-
-                const [patients] = await connection.query(`SELECT id, email FROM patients`);
-                const [doctors] = await connection.query(`SELECT id, email FROM doctors`);
-                const [insurances] = await connection.query(`SELECT id, name FROM insurances`);
-
-                const patientMap = Object.fromEntries(patients.map(p => [p.email, p.id]));
-                const doctorMap = Object.fromEntries(doctors.map(d => [d.email, d.id]));
-                const insuranceMap = Object.fromEntries(insurances.map(i => [i.name, i.id]));
-
-                // ===============================
-                // 5️⃣ APPOINTMENTS
-                // ===============================
-
-                const citas = resultados.map(r => [
-                    r.appointment_id,
-                    r.appointment_date,
-                    patientMap[r.patient_email],
-                    doctorMap[r.doctor_email],
-                    r.insurance_provider ? insuranceMap[r.insurance_provider] : null,
-                    r.treatment_code,
-                    r.treatment_description,
-                    r.treatment_cost,
-                    r.amount_paid
-                ]);
-
-                if (citas.length > 0) {
                     await connection.query(
-                        `INSERT IGNORE INTO appointments
-                        (appointment_id, appointment_date, patient_id, doctor_id, insurance_id,
-                        treatment_code, treatment_description, treatment_cost, amount_paid)
-                        VALUES ?`,
-                        [citas]
+                        `INSERT IGNORE INTO products (product_name, product_category, product_sku, quantity, unit_price, id_supplier) VALUES (?, ?, ?, ?, ?, ?)`,
+                        [row.product_name, row.product_category, row.product_sku, row.quantity, row.unit_price, supplier.id_supplier]
+                    );
+                    const [[product]] = await connection.query(
+                        `SELECT id_product FROM products WHERE product_sku = ?`, 
+                        [row.product_sku]
+                    );
+
+
+                    await connection.query(
+                        `INSERT IGNORE INTO transactions (id_transaction, id_customer, transaction_date) VALUES (?, ?, ?)`,
+                        [row.transaction_id, customer.id_customer, row.date]
+                    );
+
+
+                    await connection.query(
+                        `INSERT INTO transaction_details (id_transaction, id_product, quantity, unit_price) VALUES (?, ?, ?, ?)`,
+                        [row.transaction_id, product.id_product, row.quantity, row.unit_price]
                     );
                 }
 
                 await connection.commit();
-                connection.release();
+                res.json({ message: 'Procesamiento masivo completado con éxito' });
 
-                res.json({ message: 'Upload ALL completado correctamente' });
-
-            } catch (error) {
-
+            } catch (err) {
                 await connection.rollback();
+                console.error(err);
+                res.status(500).json({ error: 'Error procesando los datos', details: err.message });
+            } finally {
                 connection.release();
-
-                console.error(error);
-                res.status(500).json({ error: 'Error en inserción masiva' });
             }
         });
 };
-
-
-
-
