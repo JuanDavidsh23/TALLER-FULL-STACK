@@ -5,10 +5,10 @@ this project was created to test my skills with mysql and mongodb
 
 # Installation
 # Clone the repository
-git clone 
+git clone https://github.com/JuanDavidsh23/EXAMENSQL_MONGO
 
 # Navigate to the directory
-cd project-name
+cd EXAMENSQL_MONGO
 
 # Install dependencies
 npm install      
