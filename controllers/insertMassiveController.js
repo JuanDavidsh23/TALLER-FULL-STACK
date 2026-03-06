@@ -23,9 +23,6 @@ export const uploadAllData = async (req, res) => {
 
                 for (const row of results) {
 
-                    // -------------------------
-                    // INSERTAR VENDEDOR
-                    // -------------------------
                     await connection.query(
                         `INSERT INTO personas (nombre, telefono)
                          VALUES (?, ?)`,
@@ -41,9 +38,7 @@ export const uploadAllData = async (req, res) => {
                     );
 
 
-                    // -------------------------
-                    // INSERTAR COMPRADOR
-                    // -------------------------
+
                     await connection.query(
                         `INSERT INTO personas (nombre, telefono)
                          VALUES (?, ?)`,
@@ -59,9 +54,7 @@ export const uploadAllData = async (req, res) => {
                     );
 
 
-                    // -------------------------
-                    // INSERTAR VEHICULO
-                    // -------------------------
+
                     await connection.query(
                         `INSERT INTO vehiculos
                         (placa, marca, color, estado_vehiculo, kilometraje)
@@ -83,17 +76,13 @@ export const uploadAllData = async (req, res) => {
                     );
 
 
-                    // -------------------------
-                    // MANEJO DE CAMPOS VACIOS
-                    // -------------------------
+
                     const fechaVenta = row.fecha_venta || null;
                     const precioVenta = row.precio_venta || null;
                     const ganancia = row.ganancia || null;
 
 
-                    // -------------------------
-                    // INSERTAR OPERACION
-                    // -------------------------
+
                     await connection.query(
                         `INSERT INTO operaciones
                         (id_vehiculo,id_vendedor,id_comprador,fecha_ingreso,fecha_venta,

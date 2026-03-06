@@ -1,9 +1,7 @@
 import pool from '../bd.js';
 
 
-/* =========================
-   CREATE AUTO
-   ========================= */
+
 
 export const createAuto = async (req, res) => {
 
@@ -35,9 +33,7 @@ export const createAuto = async (req, res) => {
 
 
 
-/* =========================
-   READ TODOS
-   ========================= */
+
 
 export const getAutos = async (req, res) => {
 
@@ -61,9 +57,7 @@ export const getAutos = async (req, res) => {
 
 
 
-/* =========================
-   READ POR PLACA
-   ========================= */
+
 
 export const getAutoByPlaca = async (req, res) => {
 
@@ -96,9 +90,7 @@ export const getAutoByPlaca = async (req, res) => {
 
 
 
-/* =========================
-   UPDATE
-   ========================= */
+
 
 export const updateAuto = async (req, res) => {
 
@@ -139,9 +131,6 @@ export const updateAuto = async (req, res) => {
 
 
 
-/* =========================
-   DELETE
-   ========================= */
 
 export const deleteAuto = async (req, res) => {
 
