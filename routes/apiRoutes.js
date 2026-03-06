@@ -1,9 +1,9 @@
 import express from 'express';
 import upload from '../middlewares/upload.js';
 import {uploadAllData} from '../controllers/insertMassiveController.js';
-import { getSuppliers,getSuppliersID,updateSuppliersID,createSuppliers,deleteSuppliers } from '../controllers/crudSuppliers.js';
-import {getSuppliersAnalysis,getCustomerHistory,getTopProductsByCategory} from '../controllers/reportController.js'
-import {uploadAllDataMongo} from '../controllers/insertMongo.js'
+import {getAutos,getAutoByPlaca,createAuto,updateAuto,deleteAuto} from '../controllers/vehiculoscontroller.js';
+
+
 
 
 const router = express.Router();
@@ -12,30 +12,24 @@ const router = express.Router();
 //INSERT MASIVE SQL http://localhost:3000/uploadAllData
 router.post('/uploadAllData', upload.single('archivo'), uploadAllData);
 
-//INSERT MASIVE TRANSACTIONS ON MONGO DBhttp://localhost:3000/uploadAllDataMongo
-router.post('/uploadAllDataMongo', upload.single('archivo'), uploadAllDataMongo);
 
-//GET SUPLIERS http://localhost:3000/api/suppliers BY ID http://localhost:3000/api/suppliers/1
-router.get('/api/suppliers', getSuppliers);
-router.get('/api/suppliers/:id', getSuppliersID);
+//ROUTES VEHICULOS 
+//http://localhost:3000/getAutos GET ALL VEHICLES
+router.get('/getAutos', getAutos);
 
-//UPDATE SUPPLIER ROUTE http://localhost:3000/api/suppliers/1 
-router.put('/api/suppliers/:id', updateSuppliersID);
+//http://localhost:3000/getAutos/LHK965 GET VEHICLE FOR PLACA 
+router.get('/getAutos/:placa', getAutoByPlaca);
 
-//CREATE SUPPLIER http://localhost:3000/api/suppliers
-router.post('/api/suppliers', createSuppliers);
 
-//DELETE SUPPLIER http://localhost:3000/api/suppliers/id
-router.delete('/api/suppliers/:id', deleteSuppliers);
+//http://localhost:3000/createAutos CREATE VEHICLE
+router.post('/createAutos', createAuto);
 
-//GET SUPPPLIERS ANALYSIS http://localhost:3000/api/supplierAnalysis
-router.get('/api/supplierAnalysis',getSuppliersAnalysis)
+//http://localhost:3000/updateAuto
+router.put('/updateAuto/:placa', updateAuto);
 
-//GET CUSTOMER HISTORY http://localhost:3000/api/customerHistory/1
-router.get('/api/customerHistory/:id',getCustomerHistory)
+// http://localhost:3000/deleteAuto/:placa DELETE VEHICLE
+router.delete('/deleteAuto/:placa', deleteAuto);
 
-//GET TOP PRODUCTS http://localhost:3000/api/topProducts/Home
-router.get('/api/topProducts/:category',getTopProductsByCategory)
 
 
 export default router;

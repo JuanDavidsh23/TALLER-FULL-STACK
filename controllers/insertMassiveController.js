@@ -2,8 +2,8 @@ import fs from 'fs';
 import csv from 'csv-parser';
 import pool from '../bd.js';
 
-//FUNCTION TO UPLOAD ALLT THE INFORMATION TO MYSQL megastoreglobal
 export const uploadAllData = async (req, res) => {
+
     if (!req.file) {
         return res.status(400).json({ error: 'No se recibió archivo CSV' });
     }
@@ -14,61 +14,129 @@ export const uploadAllData = async (req, res) => {
         .pipe(csv())
         .on('data', (data) => results.push(data))
         .on('end', async () => {
+
             const connection = await pool.getConnection();
-            
+
             try {
+
                 await connection.beginTransaction();
 
                 for (const row of results) {
+
+                    // -------------------------
+                    // INSERTAR VENDEDOR
+                    // -------------------------
                     await connection.query(
-                        `INSERT IGNORE INTO suppliers (supplier_name, supplier_email) VALUES (?, ?)`,
-                        [row.supplier_name, row.supplier_email]
-                    );
-                    const [[supplier]] = await connection.query(
-                        `SELECT id_supplier FROM suppliers WHERE supplier_email = ?`, 
-                        [row.supplier_email]
+                        `INSERT INTO personas (nombre, telefono)
+                         VALUES (?, ?)`,
+                        [row.nombre_vendedor, row.telefono_vendedor]
                     );
 
+                    const [[vendedor]] = await connection.query(
+                        `SELECT id_persona 
+                         FROM personas 
+                         WHERE nombre = ? AND telefono = ?
+                         ORDER BY id_persona DESC LIMIT 1`,
+                        [row.nombre_vendedor, row.telefono_vendedor]
+                    );
+
+
+                    // -------------------------
+                    // INSERTAR COMPRADOR
+                    // -------------------------
                     await connection.query(
-                        `INSERT IGNORE INTO customers (customer_name, customer_email, customer_address, customer_phone) VALUES (?, ?, ?, ?)`,
-                        [row.customer_name, row.customer_email, row.customer_address, row.customer_phone]
-                    );
-                    const [[customer]] = await connection.query(
-                        `SELECT id_customer FROM customers WHERE customer_email = ?`, 
-                        [row.customer_email]
+                        `INSERT INTO personas (nombre, telefono)
+                         VALUES (?, ?)`,
+                        [row.nombre_comprador, row.telefono_comprador]
                     );
 
+                    const [[comprador]] = await connection.query(
+                        `SELECT id_persona 
+                         FROM personas 
+                         WHERE nombre = ? AND telefono = ?
+                         ORDER BY id_persona DESC LIMIT 1`,
+                        [row.nombre_comprador, row.telefono_comprador]
+                    );
+
+
+                    // -------------------------
+                    // INSERTAR VEHICULO
+                    // -------------------------
                     await connection.query(
-                        `INSERT IGNORE INTO products (product_name, product_category, product_sku, quantity, unit_price, id_supplier) VALUES (?, ?, ?, ?, ?, ?)`,
-                        [row.product_name, row.product_category, row.product_sku, row.quantity, row.unit_price, supplier.id_supplier]
+                        `INSERT INTO vehiculos
+                        (placa, marca, color, estado_vehiculo, kilometraje)
+                        VALUES (?, ?, ?, ?, ?)`,
+                        [
+                            row.placa,
+                            row.marca,
+                            row.color,
+                            row.estado_vehiculo,
+                            row.kilometraje
+                        ]
                     );
-                    const [[product]] = await connection.query(
-                        `SELECT id_product FROM products WHERE product_sku = ?`, 
-                        [row.product_sku]
+
+                    const [[vehiculo]] = await connection.query(
+                        `SELECT id_vehiculo 
+                         FROM vehiculos 
+                         WHERE placa = ?`,
+                        [row.placa]
                     );
 
 
+                    // -------------------------
+                    // MANEJO DE CAMPOS VACIOS
+                    // -------------------------
+                    const fechaVenta = row.fecha_venta || null;
+                    const precioVenta = row.precio_venta || null;
+                    const ganancia = row.ganancia || null;
+
+
+                    // -------------------------
+                    // INSERTAR OPERACION
+                    // -------------------------
                     await connection.query(
-                        `INSERT IGNORE INTO transactions (id_transaction, id_customer, transaction_date) VALUES (?, ?, ?)`,
-                        [row.transaction_id, customer.id_customer, row.date]
+                        `INSERT INTO operaciones
+                        (id_vehiculo,id_vendedor,id_comprador,fecha_ingreso,fecha_venta,
+                        precio_compra,precio_venta,ganancia,estado_operacion)
+                        VALUES (?,?,?,?,?,?,?,?,?)`,
+                        [
+                            vehiculo.id_vehiculo,
+                            vendedor.id_persona,
+                            comprador.id_persona,
+                            row.fecha_ingreso,
+                            fechaVenta,
+                            row.precio_compra,
+                            precioVenta,
+                            ganancia,
+                            row.estado_operacion
+                        ]
                     );
 
-
-                    await connection.query(
-                        `INSERT INTO transaction_details (id_transaction, id_product, quantity, unit_price) VALUES (?, ?, ?, ?)`,
-                        [row.transaction_id, product.id_product, row.quantity, row.unit_price]
-                    );
                 }
 
                 await connection.commit();
-                res.json({ message: 'Procesamiento masivo completado con éxito' });
 
-            } catch (err) {
+                res.json({
+                    message: 'Carga masiva completada correctamente'
+                });
+
+            } catch (error) {
+
                 await connection.rollback();
-                console.error(err);
-                res.status(500).json({ error: 'Error procesando los datos', details: err.message });
+
+                console.error(error);
+
+                res.status(500).json({
+                    error: 'Error procesando el CSV',
+                    details: error.message
+                });
+
             } finally {
+
                 connection.release();
+
             }
+
         });
+
 };

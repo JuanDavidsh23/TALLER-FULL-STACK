@@ -1,17 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./style.css">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vehicle System</title>
+<link rel="stylesheet" href="./style.css">
 </head>
+
 <body>
-    <form class="form" id="formulario" action="">
-        <input type="file" name="archivo" id="archivo">
-        <button type="submit">Subir archivo</button>
-    </form>
-    <p id="respuesta"></p>
-    <script src="./script.js"></script>
+
+<h1>Vehicle Management</h1>
+
+<h2>Create Vehicle</h2>
+
+<form id="createForm">
+
+<input type="text" id="placa" placeholder="Placa" required>
+<input type="text" id="marca" placeholder="Marca" required>
+<input type="text" id="color" placeholder="Color">
+<input type="text" id="estado_vehiculo" placeholder="Estado">
+<input type="number" id="kilometraje" placeholder="Kilometraje">
+
+<button type="submit">Create</button>
+
+</form>
+
+
+<h2>Upload CSV</h2>
+
+<form class="form" id="formulario">
+
+<input type="file" name="archivo" id="archivo">
+
+<button type="submit">Subir archivo</button>
+
+</form>
+
+<p id="respuesta"></p>
+
+
+
+<h2>Inventory</h2>
+
+<table border="1">
+
+<thead>
+
+<tr>
+<th>Placa</th>
+<th>Marca</th>
+<th>Color</th>
+<th>Estado</th>
+<th>Kilometraje</th>
+<th>Actions</th>
+</tr>
+
+</thead>
+
+<tbody id="tablaAutos">
+
+</tbody>
+
+</table>
+
+
+<script src="./script.js"></script>
+
 </body>
 </html>
